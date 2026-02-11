@@ -142,15 +142,18 @@ const Particles = () => {
       geometry.attributes.position.needsUpdate = true;
 
       renderer.render({ scene: particles, camera });
-      requestAnimationFrame(update);
+      animationId = requestAnimationFrame(update);
     };
 
-    requestAnimationFrame(update);
+    let animationId = requestAnimationFrame(update);
 
     return () => {
+      cancelAnimationFrame(animationId);
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", handleMouseMove);
-      container.removeChild(gl.canvas);
+      if (container.contains(gl.canvas)) {
+        container.removeChild(gl.canvas);
+      }
     };
   }, []);
 

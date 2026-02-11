@@ -27,7 +27,7 @@
 <p>Extract frames at 1 frame per second for model input.</p>
 
 <h2>Model Architecture</h2>
-<img src="Pictures/Img4.png" alt="Model Architecture Diagram">
+<img src="docs/Img4.png" alt="Model Architecture Diagram">
 
 <ul>
     <li><strong>Base Model:</strong> ViT (<code>vit_base_patch16_224</code>)</li>
@@ -89,12 +89,21 @@ plt.show()</code></pre>
     cap.release()</code></pre>
 
 <h2>Installation and Setup</h2>
-<h3>Install Packages:</h3>
-<pre><code>pip install timm torch torchvision opencv-python pillow scikit-learn seaborn matplotlib</code></pre>
+<h3>Frontend (React):</h3>
+<pre><code>cd DeepShield
+npm install
+npm start</code></pre>
+
+<h3>Backend (Flask):</h3>
+<pre><code>cd backend
+pip install -r requirements.txt
+python app.py</code></pre>
+
+<h3>Model:</h3>
+<p>Place your trained model file at <code>backend/models/best_vit_model.pth</code></p>
 
 <h3>CUDA Verification:</h3>
-<pre><code>print("CUDA Available:", torch.cuda.is_available())
-print("GPU Name:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "No GPU")</code></pre>
+<pre><code>python -c "import torch; print('CUDA Available:', torch.cuda.is_available())"</code></pre>
 
 <h2>Results</h2>
 <ul>
@@ -103,9 +112,9 @@ print("GPU Name:", torch.cuda.get_device_name(0) if torch.cuda.is_available() el
 </ul>
 
 <h2>Website Usage</h2>
-<img src="Pictures/Img1.png" alt="Website Landing Page">
-<img src="Pictures/Img2.png" alt="Upload Interface">
-<img src="Pictures/Img3.png" alt="Processing Results">
+<img src="docs/Img1.png" alt="Website Landing Page">
+<img src="docs/Img2.png" alt="Upload Interface">
+<img src="docs/Img3.png" alt="Processing Results">
 
 <h2>Contributors</h2>
 <div class="contributors">

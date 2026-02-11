@@ -1,0 +1,12 @@
+.split-parent {
+    font-family: "ASM Bold", sans-serif;
+  }
+  
+  .split-parent span {
+    display: inline-block;
+  }
+  
+  .split-parent .animated {
+    will-change: transform, opacity;
+  }
+  

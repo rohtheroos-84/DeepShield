@@ -86,10 +86,9 @@ section {
   max-width: 500px;
   max-height: 1500px;
   min-height: 350px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(90, 85, 85, 0.15);
   padding: 60px;
   border-radius: 15px;
-  backdrop-filter: blur(12px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   margin: 100px auto 0 auto;
 }
@@ -99,8 +98,43 @@ section {
   font-family: "ASM Bold", sans-serif;
   font-size: 28px;
   font-weight: bold;
-  color: white; /* Ensure text is visible */
+  color: white;
   display: inline-block;
+}
+
+/* Project Title */
+.project-title {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.title-deep,
+.title-shield {
+  font-size: 72px;
+  font-weight: bold;
+  margin: 0 5px;
+}
+
+.title-deep {
+  color: red;
+}
+
+.title-shield {
+  color: green;
+}
+
+.tagline-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.tagline {
+  font-family: "ASM Bold", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: white;
 }
 
 /* File Upload Box */
@@ -112,7 +146,6 @@ section {
   justify-content: center;
 }
 
-/* File Picker Input with purple border & animation */
 .upload-box input {
   padding: 10px;
   border: 2px solid #8F1DA3;
@@ -125,7 +158,7 @@ section {
   cursor: pointer;
   font-family: "ASM Bold", sans-serif;
   transition: border 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 10px; /* Space between input and text */
+  margin-bottom: 10px;
 }
 
 .upload-box input:hover,
@@ -134,7 +167,6 @@ section {
   box-shadow: 0 0 10px rgba(143, 29, 163, 0.5);
 }
 
-/* "Choose File" button for WebKit browsers */
 .upload-box input::-webkit-file-upload-button {
   font-family: "ASM Bold", sans-serif;
   background: linear-gradient(45deg, #8F1DA3, #b656b6);
@@ -151,7 +183,6 @@ section {
   transform: scale(1.05);
 }
 
-/* Style for the descriptive text below the file input */
 .upload-box p {
   margin: 0;
   font-size: 14px;
@@ -163,28 +194,26 @@ section {
 .media-preview {
   margin-top: 20px;
   display: flex;
-  justify-content: center; /* Centers content horizontally */
-  align-items: center;     /* Centers content vertically */
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  max-width: 450px;        /* Container width */
+  max-width: 450px;
   max-height: 300px;
   overflow: hidden;
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
   background: #000;
-  margin: 20px auto;       /* Center the container itself, if needed */
+  margin: 20px auto;
 }
 
 .media {
-  display: block;     /* Allows margin auto to work */
-  margin: 0 auto;     /* Centers the video horizontally */
-  max-width: 100%;    /* Prevents the video from exceeding container width */
-  max-height: 100%;   /* Prevents it from overflowing the container height */
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   border-radius: 12px;
 }
-
-
 
 /* Detect Button */
 .detect-btn {
@@ -235,26 +264,37 @@ section {
     flex-direction: column;
     gap: 15px;
   }
+  .cards-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .cards-container {
+    grid-template-columns: 1fr;
+  }
+  .title-deep,
+  .title-shield {
+    font-size: 48px;
+  }
 }
 
 /* Face Cards Section */
 .cards-container {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  flex-wrap: wrap;
   margin-top: 30px;
 }
 
-/* Profile Image */
 .profile-pic {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  border: 3px solid gray;
+  border: 2px solid gray;
   object-fit: cover;
   position: absolute;
-  top: -40px;
+  top: -30px;
   left: 50%;
   transform: translateX(-50%);
   background-color: white;
@@ -263,13 +303,14 @@ section {
 .card {
   position: relative;
   background: #8F1DA3;
-  padding: 50px 20px 20px;
+  padding: 30px 15px 15px;
   border: 2px solid black;
   border-radius: 12px;
   text-align: center;
-  width: 320px;
+  width: 100%;
+  max-width: 250px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  min-height: 150px;
+  min-height: 130px;
 }
 
 .card:hover {
@@ -277,19 +318,16 @@ section {
   box-shadow: 0px 6px 12px rgba(255, 255, 255, 0.3);
 }
 
-/* Name */
 .card h3 {
   margin: 5px 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
-/* Links */
 .card p {
-  font-size: 1rem;
+  font-size: 0.9rem;
   margin: 5px 0;
 }
 
-/* Underline effect on links */
 .card a {
   position: relative;
   display: inline-block;
@@ -337,5 +375,46 @@ section {
   to {
     transform: scaleX(0);
     transform-origin: right;
+  }
+}
+
+/* Architecture Section */
+.Arch_div {
+  text-align: center;
+  width: 90%;
+  max-width: 650px;
+  max-height: 1300px;
+  min-height: 350px;
+  background: rgba(90, 85, 85, 0.15);
+  padding: 60px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  margin: 10px auto 0 auto;
+}
+
+.arch-img {
+  width: 100%;
+  max-width: 800px;
+  height: 500px;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.arch-img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }

@@ -1,0 +1,51 @@
+/* RotatingText.css */
+
+.rotating-text {
+  /* Style for the rotating portion of the logo */
+  display: flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  position: relative;
+  color: white;
+  background-color: #8F1DA3;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.text-rotate {
+  display: flex;
+  flex-wrap: wrap;
+  white-space: pre-wrap;
+  position: relative;
+}
+
+.text-rotate-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.text-rotate-word {
+  display: inline-flex;
+}
+
+.text-rotate-lines {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.text-rotate-element {
+  display: inline-block;
+}
+
+.text-rotate-space {
+  white-space: pre;
+}

@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "DeepShield",
+  "name": "DeepShield - Deepfake Detection",
   "icons": [
     {
       "src": "favicon.ico",

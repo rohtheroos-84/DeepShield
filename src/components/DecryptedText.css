@@ -1,0 +1,15 @@
+.decrypted-text {
+    display: inline-block;
+    white-space: pre-wrap;
+  }
+  
+  .decrypted-text .encrypted {
+    opacity: 0.6;
+    transition: opacity 0.3s;
+  }
+  
+  .decrypted-text .revealed {
+    opacity: 1;
+    transition: opacity 0.3s;
+  }
+  
