@@ -49,3 +49,6 @@ backend/models/*.onnx
 .idea/
 *.swp
 *.swo
+
+# Dataset
+/data/
