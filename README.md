@@ -1,7 +1,7 @@
 
 <body>
 
-<h1>Deepfake Video Detection: ViT Baseline + CNN/ViT/FFT/BiLSTM Hybrid</h1>
+<h1>DeepShield: Deepfake Video Detection using a CNN+ViT+FFT+BiLSTM Hybrid</h1>
 <p>This project includes two model tracks: a deployment-ready ViT frame classifier used by the Flask backend, and a newer video-level hybrid notebook that adds CNN + ViT spatial features, FFT frequency cues, and temporal LSTM modeling.</p>
 
 <h2>Table of Contents</h2>
