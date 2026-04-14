@@ -118,6 +118,16 @@ python app.py</code></pre>
 
 <h2>Contributors</h2>
 <div class="contributors">
+        <div class="card">
+        <h3>Rohit N</h3>
+        <p>Email: <a href="mailto:rohit84.official@gmail.com">rohit84.official@gmail.com</a></p>
+        <p>LinkedIn: <a href="https://www.linkedin.com/in/rohit-n-1b0984280" target="_blank">Profile</a></p>
+    </div>
+    <div class="card">
+        <h3>Rahul B</h3>
+        <p>Email: <a href="mailto:rahulbalachandar24@gmail.com">rahulbalachandar24@gmail.com</a></p>
+        <p>LinkedIn: <a href="https://www.linkedin.com/in/rahul-balachandar-a9436a293" target="_blank">Profile</a></p>
+    </div>
     <div class="card">
         <h3>Yadeesh T</h3>
         <p>Email: <a href="mailto:yadeesh005@gmail.com">yadeesh005@gmail.com</a></p>
@@ -127,16 +137,6 @@ python app.py</code></pre>
         <h3>Gokul Ram K</h3>
         <p>Email: <a href="mailto:gokul.ram.kannan210905@gmail.com">gokul.ram.kannan210905@gmail.com</a></p>
         <p>LinkedIn: <a href="https://www.linkedin.com/in/gokul-ram-k-277a6a308" target="_blank">Profile</a></p>
-    </div>
-    <div class="card">
-        <h3>Rohit N</h3>
-        <p>Email: <a href="mailto:rohit84.official@gmail.com">rohit84.official@gmail.com</a></p>
-        <p>LinkedIn: <a href="https://www.linkedin.com/in/rohit-n-1b0984280" target="_blank">Profile</a></p>
-    </div>
-    <div class="card">
-        <h3>Rahul B</h3>
-        <p>Email: <a href="mailto:rahulbalachandar24@gmail.com">rahulbalachandar24@gmail.com</a></p>
-        <p>LinkedIn: <a href="https://www.linkedin.com/in/rahul-balachandar-a9436a293" target="_blank">Profile</a></p>
     </div>
 </div>
 
