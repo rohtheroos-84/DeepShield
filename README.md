@@ -1,13 +1,14 @@
 
 <body>
 
-<h1>Deepfake Video Detection with Vision Transformer (ViT)</h1>
-<p>This project detects deepfake videos using a Vision Transformer (ViT) model, classifying frames as real or manipulated with high accuracy.</p>
+<h1>Deepfake Video Detection: ViT Baseline + CNN/ViT/FFT/BiLSTM Hybrid</h1>
+<p>This project includes two model tracks: a deployment-ready ViT frame classifier used by the Flask backend, and a newer video-level hybrid notebook that adds CNN + ViT spatial features, FFT frequency cues, and temporal LSTM modeling.</p>
 
 <h2>Table of Contents</h2>
 <ul>
     <li>Dataset Preparation</li>
     <li>Model Architecture</li>
+    <li>Latest Model Updates</li>
     <li>Training Process</li>
     <li>Validation and Metrics</li>
     <li>Video Prediction</li>
@@ -17,32 +18,53 @@
 </ul>
 
 <h2>Dataset Preparation</h2>
-<h3>Video Directories:</h3>
+<h3>Current Working Dataset Layout:</h3>
 <ul>
-    <li><strong>Real Videos:</strong> <code>/DFD_original_sequences</code></li>
-    <li><strong>Manipulated Videos:</strong> <code>/DFD_manipulated_sequences</code></li>
+    <li><strong>Frame Dataset Used by Training:</strong> <code>data/FF_frames/fake</code> and <code>data/FF_frames/real</code></li>
+    <li><strong>Source Video Collections (optional/reference):</strong> <code>data/FF++</code> style real/manipulated folders</li>
 </ul>
 
 <h3>Frame Extraction:</h3>
-<p>Extract frames at 1 frame per second for model input.</p>
+<p>Extract frames at approximately 1 FPS. Frame filenames should preserve video identity and frame order (for sequence modeling), e.g. <code>video123_00045.jpg</code>.</p>
 
 <h2>Model Architecture</h2>
 <img src="docs/Img4.png" alt="Model Architecture Diagram">
 
+<h3>Model Variants</h3>
 <ul>
-    <li><strong>Base Model:</strong> ViT (<code>vit_base_patch16_224</code>)</li>
-    <li><strong>Input Size:</strong> 224x224 pixels</li>
-    <li><strong>Classes:</strong> 2 (Real, Manipulated)</li>
-    <li><strong>Pretrained Weights:</strong> Yes (ImageNet)</li>
+    <li><strong>Backend Inference Model (current production path):</strong> ViT (<code>vit_base_patch16_224</code>), frame-level inference</li>
+    <li><strong>Latest Notebook Model:</strong> ResNet50 + ViT + FFT branch + BiLSTM (video-level sequence classification)</li>
+    <li><strong>Input:</strong> 224x224 frame tensors, grouped into temporal windows (default sequence length = 8)</li>
+    <li><strong>Classes:</strong> 2 (folder-sorted class order, typically <code>fake</code>, <code>real</code>)</li>
+    <li><strong>Pretrained Weights:</strong> Yes (ImageNet for spatial backbones)</li>
 </ul>
 
-<h3>Model Initialization:</h3>
+<h3>Baseline ViT Initialization (backend-compatible):</h3>
 <pre><code>model = timm.create_model('vit_base_patch16_224', pretrained=True, num_classes=2)
 model.to(device)
 model = nn.DataParallel(model)</code></pre>
 
+<h3>Latest Hybrid Initialization (notebook):</h3>
+<pre><code>model = TemporalHybridModel(
+    num_classes=2,
+    fft_dim=128,
+    lstm_hidden=192,
+    freeze_backbones=True,
+    temporal_pool="mean",
+).to(device)</code></pre>
+
+<h2>Latest Model Updates</h2>
+<ul>
+    <li><strong>Video-level split:</strong> Train/validation split is done at video identity level to reduce frame leakage.</li>
+    <li><strong>Sequence sampling:</strong> Sliding windows over ordered frames (<code>SEQ_LEN</code>, <code>SEQ_STRIDE</code>).</li>
+    <li><strong>Frequency branch:</strong> FFT magnitude features are extracted per frame and fused with spatial features.</li>
+    <li><strong>Temporal modeling:</strong> BiLSTM over per-frame fused embeddings with configurable pooling.</li>
+    <li><strong>Stability controls:</strong> class-weighted loss, label smoothing, gradient clipping, LR plateau scheduler, and early stopping.</li>
+    <li><strong>Checkpoint policy:</strong> final metrics are computed from the best validation checkpoint, not just last epoch.</li>
+</ul>
+
 <h2>Training Process</h2>
-<h3>Transformations:</h3>
+<h3>Baseline ViT Transformations:</h3>
 <pre><code>transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.RandomHorizontalFlip(),
@@ -51,7 +73,7 @@ model = nn.DataParallel(model)</code></pre>
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])</code></pre>
 
-<h3>Training Loop:</h3>
+<h3>Baseline ViT Training Loop:</h3>
 <pre><code>for epoch in range(num_epochs):
     model.train()
     for images, labels in train_loader:
@@ -62,9 +84,15 @@ model = nn.DataParallel(model)</code></pre>
         loss.backward()
         optimizer.step()</code></pre>
 
+    <h3>Latest Hybrid Training Pipeline (notebook):</h3>
+    <pre><code># 1) build video records -> split by video -> create sequence samples
+    # 2) train TemporalHybridModel (ResNet50 + ViT + FFT + BiLSTM)
+    # 3) optimize with AdamW + ReduceLROnPlateau + early stopping
+    # 4) save best checkpoint by val accuracy (tie-break by val loss)</code></pre>
+
 <h2>Validation and Metrics</h2>
 <h3>Classification Report:</h3>
-<pre><code>print(classification_report(all_labels, all_predictions, target_names=['Real', 'Manipulated']))</code></pre>
+    <pre><code>print(classification_report(labels_all, preds_all, target_names=class_names, zero_division=0))</code></pre>
 
 <h3>Confusion Matrix:</h3>
 <pre><code>sns.heatmap(cm, annot=True, cmap='Blues')
@@ -72,7 +100,10 @@ plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.show()</code></pre>
 
+    <p>Latest evaluation cells also report label distribution, prediction distribution, weighted precision/recall/F1, and ROC-AUC (binary mode).</p>
+
 <h2>Video Prediction</h2>
+    <p>The Flask backend currently serves frame-level inference using the ViT checkpoint in <code>backend/models/best_vit_model.pth</code> and streams running real/fake percentages to the frontend.</p>
 <pre><code>def predict_video(video_path, model, transform, device):
     cap = cv2.VideoCapture(video_path)
     real_count, manipulated_count = 0, 0
@@ -99,16 +130,25 @@ npm start</code></pre>
 pip install -r requirements.txt
 python app.py</code></pre>
 
-<h3>Model:</h3>
+<h3>Model Files:</h3>
 <p>Place your trained model file at <code>backend/models/best_vit_model.pth</code></p>
+<p>Latest hybrid experiment notebook: <code>notebooks/frac_df_cnnvit_fft_temporal.ipynb</code></p>
+<p>Hybrid training checkpoint (default filename): <code>small_cnn_vit_fft_lstm_model.pth</code></p>
 
 <h3>CUDA Verification:</h3>
 <pre><code>python -c "import torch; print('CUDA Available:', torch.cuda.is_available())"</code></pre>
 
 <h2>Results</h2>
+<h3>Baseline ViT (frame-level):</h3>
 <ul>
     <li>Training Accuracy: ~89.71%</li>
     <li>Validation Accuracy: ~87.77%</li>
+</ul>
+
+<h3>Latest Hybrid (video-level, experimental):</h3>
+<ul>
+    <li>Architecture and training flow are updated in the notebook with temporal + FFT fusion.</li>
+    <li>Current runs are under active tuning; use notebook metric cells for the latest measured accuracy/F1.</li>
 </ul>
 
 <h2>Website Usage</h2>
