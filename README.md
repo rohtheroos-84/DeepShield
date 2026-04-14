@@ -27,8 +27,8 @@
 <h3>Frame Extraction:</h3>
 <p>Extract frames at approximately 1 FPS. Frame filenames should preserve video identity and frame order (for sequence modeling), e.g. <code>video123_00045.jpg</code>.</p>
 
-<h2>Model Architecture</h2>
-<img src="docs/Img4.png" alt="Model Architecture Diagram">
+<h2>Model Architecture Flowchart</h2>
+<img src="docs/arch.png" alt="Model Architecture Diagram">
 
 <h3>Model Variants</h3>
 <ul>
