@@ -281,9 +281,11 @@ section {
 
 /* Face Cards Section */
 .cards-container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  flex-wrap: wrap;
   margin-top: 30px;
 }
 
@@ -395,8 +397,8 @@ section {
 .arch-img {
   width: 100%;
   max-width: 800px;
-  height: 500px;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;

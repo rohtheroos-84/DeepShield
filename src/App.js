@@ -8,6 +8,7 @@ import ConstellationBackground from "./components/ConstellationBackground";
 import "./App.css";
 
 const teamMembers = [
+  /*
   {
     name: "Yadeesh T",
     github: "https://github.com/Yadeesht",
@@ -22,6 +23,7 @@ const teamMembers = [
     email: "gokul.ram.kannan21@gmail.com",
     image: "/dp.jpg",
   },
+  */
   {
     name: "Rohit N",
     github: "https://github.com/rohtheroos-84",
@@ -35,7 +37,7 @@ const teamMembers = [
     linkedin: "https://www.linkedin.com/in/rahul-balachandar-a9436a293",
     email: "rahulbalachandar24@gmail.com",
     image: "/dp.jpg",
-  },
+  }
 ];
 
 const handleAnimationComplete = () => {
@@ -329,7 +331,7 @@ Fake Count: ${result.fake_count}`}
       <section id="architecture">
         <h2>WorkFlow</h2>
         <div className="Arch_div">
-          <img src="/arch.png" alt="System Architecture" className="arch-img" />
+          <img src="arch.png" alt="System Architecture" className="arch-img" />
         </div>
       </section>
 
