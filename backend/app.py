@@ -10,10 +10,32 @@ from flask import Flask, request, Response, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
 
-# Max upload size: 500 MB
-app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
+
+def get_env_int(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        print(f"WARNING: Invalid integer for {name}={value!r}, using default={default}")
+        return default
+
+
+cors_allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "").strip()
+if cors_allowed_origins:
+    origins = [origin.strip() for origin in cors_allowed_origins.split(",") if origin.strip()]
+    CORS(app, resources={r"/*": {"origins": origins}})
+else:
+    CORS(app)
+
+# Max upload size in MB (default 100 for free-tier stability)
+max_upload_mb = max(1, get_env_int("MAX_CONTENT_LENGTH_MB", 100))
+app.config['MAX_CONTENT_LENGTH'] = max_upload_mb * 1024 * 1024
+
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = get_env_int("PORT", 5000)
 
 # Set up device (GPU if available)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -139,8 +161,9 @@ def health():
         "status": "ok",
         "device": str(device),
         "model_loaded": os.path.exists(MODEL_PATH),
+        "max_upload_mb": max_upload_mb,
     })
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    app.run(host=HOST, port=PORT, debug=False)

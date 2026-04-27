@@ -44,6 +44,10 @@ const handleAnimationComplete = () => {
   console.log("All letters have animated!");
 };
 
+const DEFAULT_API_BASE_URL = "http://127.0.0.1:5000";
+const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
+const PREDICT_ENDPOINT = `${API_BASE_URL}/predict`;
+
 function App() {
   const [file, setFile] = useState(null);
   const [fileURL, setFileURL] = useState(null);
@@ -168,10 +172,13 @@ function App() {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const response = await fetch("http://127.0.0.1:5000/predict", {
+      const response = await fetch(PREDICT_ENDPOINT, {
         method: "POST",
         body: formData,
       });
+      if (!response.ok || !response.body) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let accumulated = "";
@@ -198,7 +205,7 @@ function App() {
       }
     } catch (error) {
       console.error("Error during detection:", error);
-      alert("Error during detection. Make sure the backend server is running.");
+      alert(`Error during detection. Check backend URL and server status: ${API_BASE_URL}`);
     }
     setLoading(false);
   };
