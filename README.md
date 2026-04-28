@@ -147,11 +147,43 @@ python app.py
 - Place your trained model file at `backend/models/best_vit_model.pth`.
 - Latest hybrid experiment notebook: `notebooks/frac_df_cnnvit_fft_temporal.ipynb`.
 - Hybrid training checkpoint (default filename): `small_cnn_vit_fft_lstm_model.pth`.
+- Alternatively, set `MODEL_URL` and the backend will download the model on startup.
 
 ### CUDA Verification
 ```bash
 python -c "import torch; print('CUDA Available:', torch.cuda.is_available())"
 ```
+
+## Deployment (Free)
+The most reliable free setup is **Hugging Face Hub (model hosting)** + **Hugging Face Spaces (backend)** + **Netlify (frontend)**.
+
+### 1) Host the model on Hugging Face Hub
+1. Create a model repo (e.g., `deepshield-model`).
+2. Upload `best_vit_model.pth`.
+3. Copy the direct file URL, for example:
+    `https://huggingface.co/<user>/deepshield-model/resolve/main/best_vit_model.pth`
+
+### 2) Deploy backend on Hugging Face Spaces (Docker)
+This repo includes a `Dockerfile` that runs the Flask API via gunicorn.
+
+Set these Space environment variables:
+```bash
+MODEL_URL=https://huggingface.co/<user>/deepshield-model/resolve/main/best_vit_model.pth
+MODEL_SHA256=<optional_sha256_for_verification>
+MAX_CONTENT_LENGTH_MB=100
+CORS_ALLOWED_ORIGINS=https://deepshieldetector.netlify.app
+```
+
+### 3) Deploy frontend on Netlify
+Set this Netlify environment variable:
+```bash
+REACT_APP_API_BASE_URL=https://<your-space>.hf.space
+```
+Then build and publish the React app.
+
+### Free model hosting alternatives (not recommended)
+- **Git LFS**: free bandwidth is low; large models often hit limits.
+- **GitHub Releases**: ok for static hosting, but you still need a backend host to download and serve the model.
 
 ## Results
 ### Baseline ViT (frame-level)

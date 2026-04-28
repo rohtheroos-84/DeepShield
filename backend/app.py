@@ -1,6 +1,9 @@
 import os
 import json
+import hashlib
+import shutil
 import tempfile
+import urllib.request
 
 import cv2
 import numpy as np
@@ -21,6 +24,22 @@ def get_env_int(name, default):
     except ValueError:
         print(f"WARNING: Invalid integer for {name}={value!r}, using default={default}")
         return default
+
+
+def sha256_file(path):
+    hasher = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def download_file(url, dest_path):
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    tmp_path = f"{dest_path}.download"
+    with urllib.request.urlopen(url) as response, open(tmp_path, "wb") as f:
+        shutil.copyfileobj(response, f)
+    os.replace(tmp_path, dest_path)
 
 
 cors_allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "").strip()
@@ -45,7 +64,7 @@ print(f"Using device: {device}")
 model = timm.create_model('vit_base_patch16_224', pretrained=False, num_classes=2)
 model = model.to(device)
 
-# Function to remove "module." prefix from state_dict keys (from DataParallel training)
+
 def remove_module_prefix(state_dict):
     new_state_dict = {}
     for key, value in state_dict.items():
@@ -53,14 +72,53 @@ def remove_module_prefix(state_dict):
         new_state_dict[new_key] = value
     return new_state_dict
 
-# Load the model weights using a path relative to this file
-MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
-MODEL_PATH = os.path.join(MODEL_DIR, "best_vit_model.pth")
 
-if not os.path.exists(MODEL_PATH):
-    print(f"WARNING: Model file not found at {MODEL_PATH}")
-    print("Please place your trained model at: backend/models/best_vit_model.pth")
-else:
+MODEL_DIR = os.getenv("MODEL_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "models"))
+MODEL_PATH = os.path.join(MODEL_DIR, "best_vit_model.pth")
+MODEL_URL = os.getenv("MODEL_URL", "").strip()
+MODEL_SHA256 = os.getenv("MODEL_SHA256", "").strip()
+
+
+def ensure_model_file():
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    if os.path.exists(MODEL_PATH) and MODEL_SHA256:
+        current = sha256_file(MODEL_PATH)
+        if current != MODEL_SHA256:
+            print("WARNING: Model checksum mismatch, removing cached file.")
+            try:
+                os.remove(MODEL_PATH)
+            except OSError:
+                pass
+
+    if os.path.exists(MODEL_PATH):
+        return True
+
+    if not MODEL_URL:
+        print(f"WARNING: Model file not found at {MODEL_PATH}")
+        print("Set MODEL_URL or place your trained model at: backend/models/best_vit_model.pth")
+        return False
+
+    print(f"Downloading model from {MODEL_URL} ...")
+    try:
+        download_file(MODEL_URL, MODEL_PATH)
+    except Exception as exc:
+        print(f"ERROR: Failed to download model: {exc}")
+        return False
+
+    if MODEL_SHA256:
+        downloaded = sha256_file(MODEL_PATH)
+        if downloaded != MODEL_SHA256:
+            print("ERROR: Downloaded model checksum mismatch.")
+            try:
+                os.remove(MODEL_PATH)
+            except OSError:
+                pass
+            return False
+
+    return True
+
+
+if ensure_model_file():
     state_dict = torch.load(MODEL_PATH, map_location=device, weights_only=True)
     state_dict = remove_module_prefix(state_dict)
     model.load_state_dict(state_dict)
@@ -162,6 +220,7 @@ def health():
         "device": str(device),
         "model_loaded": os.path.exists(MODEL_PATH),
         "max_upload_mb": max_upload_mb,
+        "model_url_set": bool(MODEL_URL),
     })
 
 
