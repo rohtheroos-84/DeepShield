@@ -3,6 +3,8 @@
 
 This project includes two model tracks: a deployment-ready ViT frame classifier used by the Flask backend, and a newer video-level hybrid notebook that adds CNN + ViT spatial features, FFT frequency cues, and temporal LSTM modeling.
 
+**Live demo:** https://deepshieldetector.netlify.app
+
 ## Table of Contents
 - Dataset Preparation
 - Model Architecture
