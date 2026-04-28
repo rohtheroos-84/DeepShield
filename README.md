@@ -1,110 +1,116 @@
 
-<body>
+# DeepShield: Deepfake Video Detection (ViT Baseline + CNN/ViT/FFT/BiLSTM Hybrid)
 
-<h1>DeepShield: Deepfake Video Detection using a CNN+ViT+FFT+BiLSTM Hybrid</h1>
-<p>This project includes two model tracks: a deployment-ready ViT frame classifier used by the Flask backend, and a newer video-level hybrid notebook that adds CNN + ViT spatial features, FFT frequency cues, and temporal LSTM modeling.</p>
+This project includes two model tracks: a deployment-ready ViT frame classifier used by the Flask backend, and a newer video-level hybrid notebook that adds CNN + ViT spatial features, FFT frequency cues, and temporal LSTM modeling.
 
-<h2>Table of Contents</h2>
-<ul>
-    <li>Dataset Preparation</li>
-    <li>Model Architecture</li>
-    <li>Latest Model Updates</li>
-    <li>Training Process</li>
-    <li>Validation and Metrics</li>
-    <li>Video Prediction</li>
-    <li>Installation and Setup</li>
-    <li>Results</li>
-    <li>Website Usage</li>
-</ul>
+## Table of Contents
+- Dataset Preparation
+- Model Architecture
+- Latest Model Updates
+- Training Process
+- Evaluation Metrics
+- Video Prediction
+- Installation and Setup
+- Results
+- Website Usage
+- Contributors
 
-<h2>Dataset Preparation</h2>
-<h3>Current Working Dataset Layout:</h3>
-<ul>
-    <li><strong>Frame Dataset Used by Training:</strong> <code>data/FF_frames/fake</code> and <code>data/FF_frames/real</code></li>
-    <li><strong>Source Video Collections (optional/reference):</strong> <code>data/FF++</code> style real/manipulated folders</li>
-</ul>
+## Dataset Preparation
+### Current Working Dataset Layout
+- **Frame dataset used by training:** `data/FF_frames/fake` and `data/FF_frames/real`
+- **Source video collections (optional/reference):** `data/FF++` style real/manipulated folders
 
-<h3>Frame Extraction:</h3>
-<p>Extract frames at approximately 1 FPS. Frame filenames should preserve video identity and frame order (for sequence modeling), e.g. <code>video123_00045.jpg</code>.</p>
+### Frame Extraction
+Extract frames at approximately 1 FPS. Frame filenames should preserve video identity and frame order for sequence modeling, e.g. `video123_00045.jpg`.
 
-<h2>Model Architecture Flowchart</h2>
-<img src="docs/arch.png" alt="Model Architecture Diagram">
+## Model Architecture
+![Model Architecture Diagram](docs/arch.png)
 
-<h3>Model Variants</h3>
-<ul>
-    <li><strong>Backend Inference Model (current production path):</strong> ViT (<code>vit_base_patch16_224</code>), frame-level inference</li>
-    <li><strong>Latest Notebook Model:</strong> ResNet50 + ViT + FFT branch + BiLSTM (video-level sequence classification)</li>
-    <li><strong>Input:</strong> 224x224 frame tensors, grouped into temporal windows (default sequence length = 8)</li>
-    <li><strong>Classes:</strong> 2 (folder-sorted class order, typically <code>fake</code>, <code>real</code>)</li>
-    <li><strong>Pretrained Weights:</strong> Yes (ImageNet for spatial backbones)</li>
-</ul>
+### Model Variants
+- **Backend inference model (current production path):** ViT (`vit_base_patch16_224`), frame-level inference
+- **Latest notebook model:** ResNet50 + ViT + FFT branch + BiLSTM (video-level sequence classification)
+- **Input:** 224x224 frame tensors grouped into temporal windows (default `SEQ_LEN = 8`)
+- **Classes:** 2 (folder-sorted class order, typically `fake`, `real`)
+- **Pretrained weights:** ImageNet for spatial backbones
 
-<h3>Baseline ViT Initialization (backend-compatible):</h3>
-<pre><code>model = timm.create_model('vit_base_patch16_224', pretrained=True, num_classes=2)
+### Baseline ViT Initialization (backend-compatible)
+```python
+model = timm.create_model("vit_base_patch16_224", pretrained=True, num_classes=2)
 model.to(device)
-model = nn.DataParallel(model)</code></pre>
+model = nn.DataParallel(model)
+```
 
-<h3>Latest Hybrid Initialization (notebook):</h3>
-<pre><code>model = TemporalHybridModel(
+### Latest Hybrid Initialization (notebook)
+```python
+model = TemporalHybridModel(
     num_classes=2,
     fft_dim=128,
     lstm_hidden=192,
     freeze_backbones=True,
     temporal_pool="mean",
-).to(device)</code></pre>
+).to(device)
+```
 
-<h2>Latest Model Updates</h2>
-<ul>
-    <li><strong>Video-level split:</strong> Train/validation split is done at video identity level to reduce frame leakage.</li>
-    <li><strong>Sequence sampling:</strong> Sliding windows over ordered frames (<code>SEQ_LEN</code>, <code>SEQ_STRIDE</code>).</li>
-    <li><strong>Frequency branch:</strong> FFT magnitude features are extracted per frame and fused with spatial features.</li>
-    <li><strong>Temporal modeling:</strong> BiLSTM over per-frame fused embeddings with configurable pooling.</li>
-    <li><strong>Stability controls:</strong> class-weighted loss, label smoothing, gradient clipping, LR plateau scheduler, and early stopping.</li>
-    <li><strong>Checkpoint policy:</strong> final metrics are computed from the best validation checkpoint, not just last epoch.</li>
-</ul>
+## Latest Model Updates
+- **Video-level split:** Train/validation split uses video identity to reduce leakage.
+- **Sequence sampling:** Sliding windows over ordered frames (`SEQ_LEN`, `SEQ_STRIDE`).
+- **Frequency branch:** FFT magnitude features fused with spatial features.
+- **Temporal modeling:** BiLSTM over per-frame fused embeddings with configurable pooling.
+- **Stability controls:** Class-weighted loss, label smoothing, gradient clipping, LR plateau scheduler, and early stopping.
+- **Checkpoint policy:** Final metrics are computed from the best validation checkpoint, not just last epoch.
 
-<h2>Training Process</h2>
-<h3>Baseline ViT Transformations:</h3>
-<pre><code>transform = transforms.Compose([
+## Training Process
+### Baseline ViT Transformations
+```python
+transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.RandomHorizontalFlip(),
     transforms.ColorJitter(brightness=0.2),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])</code></pre>
+])
+```
 
-<h3>Baseline ViT Training Loop:</h3>
-<pre><code>for epoch in range(num_epochs):
-    model.train()
-    for images, labels in train_loader:
-        images, labels = images.to(device), labels.to(device)
-        optimizer.zero_grad()
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()</code></pre>
+### Latest Hybrid Training Pipeline (notebook)
+```python
+# 1) build video records -> split by video -> create sequence samples
+video_records, class_names, class_to_idx = build_video_records(DATA_PATH, min_frames=SEQ_LEN)
+train_videos, val_videos = split_video_records(video_records, val_ratio=VAL_RATIO, seed=SEED)
+train_samples = make_sequence_samples(train_videos, seq_len=SEQ_LEN, seq_stride=SEQ_STRIDE)
+val_samples = make_sequence_samples(val_videos, seq_len=SEQ_LEN, seq_stride=SEQ_STRIDE)
 
-    <h3>Latest Hybrid Training Pipeline (notebook):</h3>
-    <pre><code># 1) build video records -> split by video -> create sequence samples
-    # 2) train TemporalHybridModel (ResNet50 + ViT + FFT + BiLSTM)
-    # 3) optimize with AdamW + ReduceLROnPlateau + early stopping
-    # 4) save best checkpoint by val accuracy (tie-break by val loss)</code></pre>
+# 2) model + optimizer + scheduler
+model = TemporalHybridModel(...).to(device)
+optimizer = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=LR, weight_decay=WEIGHT_DECAY)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="max", factor=0.5, patience=1)
 
-<h2>Validation and Metrics</h2>
-<h3>Classification Report:</h3>
-    <pre><code>print(classification_report(labels_all, preds_all, target_names=class_names, zero_division=0))</code></pre>
+# 3) train and save best checkpoint
+for epoch in range(EPOCHS):
+    train_loss, train_acc = train_one_epoch(...)
+    val_loss, val_acc, _, _, _ = evaluate(...)
+    scheduler.step(val_acc)
+    if val_acc improved:
+        save best checkpoint
+```
 
-<h3>Confusion Matrix:</h3>
-<pre><code>sns.heatmap(cm, annot=True, cmap='Blues')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()</code></pre>
+## Evaluation Metrics
+The evaluation pipeline reports accuracy, precision, recall, F1, confusion matrix, and ROC-AUC (binary mode). It also prints label and prediction counts for sanity checks.
 
-    <p>Latest evaluation cells also report label distribution, prediction distribution, weighted precision/recall/F1, and ROC-AUC (binary mode).</p>
+```python
+precision = precision_score(labels_all, preds_all, average="weighted", zero_division=0)
+recall = recall_score(labels_all, preds_all, average="weighted", zero_division=0)
+f1 = f1_score(labels_all, preds_all, average="weighted", zero_division=0)
+print(classification_report(labels_all, preds_all, target_names=class_names, zero_division=0))
 
-<h2>Video Prediction</h2>
-    <p>The Flask backend currently serves frame-level inference using the ViT checkpoint in <code>backend/models/best_vit_model.pth</code> and streams running real/fake percentages to the frontend.</p>
-<pre><code>def predict_video(video_path, model, transform, device):
+cm = confusion_matrix(labels_all, preds_all)
+ConfusionMatrixDisplay(cm, display_labels=class_names).plot(cmap="Blues")
+```
+
+## Video Prediction
+The Flask backend serves frame-level inference using the ViT checkpoint in `backend/models/best_vit_model.pth` and streams running real/fake percentages to the frontend.
+
+```python
+def predict_video(video_path, model, transform, device):
     cap = cv2.VideoCapture(video_path)
     real_count, manipulated_count = 0, 0
     while cap.isOpened():
@@ -117,68 +123,50 @@ plt.show()</code></pre>
             _, predicted = torch.max(outputs, 1)
         real_count += (predicted.item() == 0)
         manipulated_count += (predicted.item() == 1)
-    cap.release()</code></pre>
+    cap.release()
+```
 
-<h2>Installation and Setup</h2>
-<h3>Frontend (React):</h3>
-<pre><code>cd DeepShield
+## Installation and Setup
+### Frontend (React)
+```bash
+cd DeepShield
 npm install
-npm start</code></pre>
+npm start
+```
 
-<h3>Backend (Flask):</h3>
-<pre><code>cd backend
+### Backend (Flask)
+```bash
+cd backend
 pip install -r requirements.txt
-python app.py</code></pre>
+python app.py
+```
 
-<h3>Model Files:</h3>
-<p>Place your trained model file at <code>backend/models/best_vit_model.pth</code></p>
-<p>Latest hybrid experiment notebook: <code>notebooks/frac_df_cnnvit_fft_temporal.ipynb</code></p>
-<p>Hybrid training checkpoint (default filename): <code>small_cnn_vit_fft_lstm_model.pth</code></p>
+### Model Files
+- Place your trained model file at `backend/models/best_vit_model.pth`.
+- Latest hybrid experiment notebook: `notebooks/frac_df_cnnvit_fft_temporal.ipynb`.
+- Hybrid training checkpoint (default filename): `small_cnn_vit_fft_lstm_model.pth`.
 
-<h3>CUDA Verification:</h3>
-<pre><code>python -c "import torch; print('CUDA Available:', torch.cuda.is_available())"</code></pre>
+### CUDA Verification
+```bash
+python -c "import torch; print('CUDA Available:', torch.cuda.is_available())"
+```
 
-<h2>Results</h2>
-<h3>Baseline ViT (frame-level):</h3>
-<ul>
-    <li>Training Accuracy: ~89.71%</li>
-    <li>Validation Accuracy: ~87.77%</li>
-</ul>
+## Results
+### Baseline ViT (frame-level)
+- Training Accuracy: ~89.71%
+- Validation Accuracy: ~87.77%
 
-<h3>Latest Hybrid (video-level, experimental):</h3>
-<ul>
-    <li>Architecture and training flow are updated in the notebook with temporal + FFT fusion.</li>
-    <li>Current runs are under active tuning; use notebook metric cells for the latest measured accuracy/F1.</li>
-</ul>
+### Latest Hybrid (video-level, experimental)
+- Architecture and training flow are updated in the notebook with temporal + FFT fusion.
+- Current runs are under active tuning; use notebook metric cells for the latest measured accuracy/F1.
 
-<h2>Website Usage</h2>
-<img src="docs/Img1.png" alt="Website Landing Page">
-<img src="docs/Img2.png" alt="Upload Interface">
-<img src="docs/Img3.png" alt="Processing Results">
+## Website Usage
+![Website Landing Page](docs/Img1.png)
+![Upload Interface](docs/Img2.png)
+![Processing Results](docs/Img3.png)
 
-<h2>Contributors</h2>
-<div class="contributors">
-        <div class="card">
-        <h3>Rohit N</h3>
-        <p>Email: <a href="mailto:rohit84.official@gmail.com">rohit84.official@gmail.com</a></p>
-        <p>LinkedIn: <a href="https://www.linkedin.com/in/rohit-n-1b0984280" target="_blank">Profile</a></p>
-    </div>
-    <div class="card">
-        <h3>Rahul B</h3>
-        <p>Email: <a href="mailto:rahulbalachandar24@gmail.com">rahulbalachandar24@gmail.com</a></p>
-        <p>LinkedIn: <a href="https://www.linkedin.com/in/rahul-balachandar-a9436a293" target="_blank">Profile</a></p>
-    </div>
-    <div class="card">
-        <h3>Yadeesh T</h3>
-        <p>Email: <a href="mailto:yadeesh005@gmail.com">yadeesh005@gmail.com</a></p>
-        <p>LinkedIn: <a href="https://www.linkedin.com/in/yadeesh-t-259640288" target="_blank">Profile</a></p>
-    </div>
-    <div class="card">
-        <h3>Gokul Ram K</h3>
-        <p>Email: <a href="mailto:gokul.ram.kannan210905@gmail.com">gokul.ram.kannan210905@gmail.com</a></p>
-        <p>LinkedIn: <a href="https://www.linkedin.com/in/gokul-ram-k-277a6a308" target="_blank">Profile</a></p>
-    </div>
-</div>
-
-</body>
-</html>
+## Contributors
+- **Rohit N** — rohit84.official@gmail.com — [LinkedIn](https://www.linkedin.com/in/rohit-n-1b0984280)
+- **Rahul B** — rahulbalachandar24@gmail.com — [LinkedIn](https://www.linkedin.com/in/rahul-balachandar-a9436a293)
+- **Yadeesh T** — yadeesh005@gmail.com — [LinkedIn](https://www.linkedin.com/in/yadeesh-t-259640288)
+- **Gokul Ram K** — gokul.ram.kannan210905@gmail.com — [LinkedIn](https://www.linkedin.com/in/gokul-ram-k-277a6a308)
