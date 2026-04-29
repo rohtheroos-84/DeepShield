@@ -8,7 +8,20 @@ import ConstellationBackground from "./components/ConstellationBackground";
 import "./App.css";
 
 const teamMembers = [
-  /*
+    {
+    name: "Rohit N",
+    github: "https://github.com/rohtheroos-84",
+    linkedin: "https://www.linkedin.com/in/rohit-n-1b0984280",
+    email: "rohit84.official@gmail.com",
+    image: "/dp.jpg",
+  },
+  {
+    name: "Rahul B",
+    github: "https://github.com/RahulB-24",
+    linkedin: "https://www.linkedin.com/in/rahul-balachandar-a9436a293",
+    email: "rahulbalachandar24@gmail.com",
+    image: "/dp.jpg",
+  },
   {
     name: "Yadeesh T",
     github: "https://github.com/Yadeesht",
@@ -21,21 +34,6 @@ const teamMembers = [
     github: "https://github.com/GOKULRAM-K",
     linkedin: "https://www.linkedin.com/in/gokul-ram-k-277a6a308",
     email: "gokul.ram.kannan21@gmail.com",
-    image: "/dp.jpg",
-  },
-  */
-  {
-    name: "Rohit N",
-    github: "https://github.com/rohtheroos-84",
-    linkedin: "https://www.linkedin.com/in/rohit-n-1b0984280",
-    email: "rohit84.official@gmail.com",
-    image: "/dp.jpg",
-  },
-  {
-    name: "Rahul B",
-    github: "https://github.com/RahulB-24",
-    linkedin: "https://www.linkedin.com/in/rahul-balachandar-a9436a293",
-    email: "rahulbalachandar24@gmail.com",
     image: "/dp.jpg",
   }
 ];
