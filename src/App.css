@@ -254,6 +254,22 @@ section {
 }
 
 /* Responsive Navbar */
+@media (max-width: 1100px) {
+  .cards-container {
+    grid-template-columns: repeat(2, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .cards-container {
+    grid-template-columns: 1fr;
+  }
+  .title-deep,
+  .title-shield {
+    font-size: 48px;
+  }
+}
+
 @media (max-width: 768px) {
   .navbar {
     flex-direction: column;
@@ -264,29 +280,18 @@ section {
     flex-direction: column;
     gap: 15px;
   }
-  .cards-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .cards-container {
-    grid-template-columns: 1fr;
-  }
-  .title-deep,
-  .title-shield {
-    font-size: 48px;
-  }
 }
 
 /* Face Cards Section */
 .cards-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 40px;
-  flex-wrap: wrap;
-  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(200px, 1fr));
+  gap: 24px;
+  align-items: start;
+  justify-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 30px auto 0 auto;
 }
 
 .profile-pic {

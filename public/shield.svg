@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="DeepShield">
+  <path fill="#8F1DA3" d="M32 4 L54 12 V28 C54 42 44 54 32 60 C20 54 10 42 10 28 V12 Z"/>
+  <path fill="#FFFFFF" opacity="0.25" d="M32 10 L46 15 V28 C46 38 39 47 32 52 C25 47 18 38 18 28 V15 Z"/>
+</svg>
