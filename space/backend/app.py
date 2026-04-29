@@ -130,6 +130,8 @@ model.eval()
 IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
+IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
+
 
 def preprocess_frame(frame):
     """Preprocess a single BGR frame for the ViT model."""
@@ -146,17 +148,61 @@ def preprocess_frame(frame):
     return tensor
 
 
+def is_image_upload(filename, mimetype):
+    if mimetype and mimetype.startswith("image/"):
+        return True
+    ext = os.path.splitext(filename or "")[1].lower()
+    return ext in IMAGE_EXTS
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
 
     video_file = request.files["file"]
+    filename = video_file.filename or ""
+    is_image = is_image_upload(filename, video_file.mimetype)
+    suffix = os.path.splitext(filename)[1].lower() if filename else (".png" if is_image else ".mp4")
 
     # Save video to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
         video_file.save(temp.name)
         video_path = temp.name
+
+    response_headers = {
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+    }
+
+    if is_image:
+        frame = cv2.imread(video_path)
+        try:
+            if frame is None:
+                return jsonify({"error": "Unable to read image"}), 400
+
+            input_tensor = preprocess_frame(frame)
+            with torch.no_grad():
+                output = model(input_tensor)
+                _, predicted = torch.max(output, 1)
+
+            real_count = 1 if predicted.item() == 0 else 0
+            fake_count = 1 if predicted.item() == 1 else 0
+            total_frames = 1
+
+            data = {
+                "total_frames": total_frames,
+                "real_count": real_count,
+                "fake_count": fake_count,
+                "real_percentage": (real_count / total_frames) * 100,
+                "fake_percentage": (fake_count / total_frames) * 100,
+            }
+            return Response(f"data: {json.dumps(data)}\n\n", mimetype="text/event-stream", headers=response_headers)
+        finally:
+            try:
+                os.remove(video_path)
+            except OSError:
+                pass
 
     def generate():
         cap = cv2.VideoCapture(video_path)
@@ -210,7 +256,7 @@ def predict():
             except OSError:
                 pass
 
-    return Response(generate(), mimetype="text/event-stream")
+    return Response(generate(), mimetype="text/event-stream", headers=response_headers)
 
 
 @app.route("/health", methods=["GET"])
