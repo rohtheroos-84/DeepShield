@@ -367,11 +367,13 @@ Fake Count: ${result.fake_count}`}
                 </a>
               </p>
               <p className="email">
-                <DecryptedText
-                  text={member.email}
-                  animateOn="view"
-                  revealDirection="start"
-                />
+                <a href={`mailto:${member.email}`} className="email-link">
+                  <DecryptedText
+                    text={member.email}
+                    animateOn="view"
+                    revealDirection="start"
+                  />
+                </a>
               </p>
             </div>
           ))}
