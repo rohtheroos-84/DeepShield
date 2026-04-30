@@ -6,11 +6,37 @@ const ConstellationBackground = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
+    let width = 1;
+    let height = 1;
+    const dpr = () => window.devicePixelRatio || 1;
+
+    const resizeCanvas = () => {
+      const vw = window.visualViewport?.width || window.innerWidth;
+      const vh = window.visualViewport?.height || window.innerHeight;
+      const scaleX = vw / width;
+      const scaleY = vh / height;
+
+      canvas.style.width = `${vw}px`;
+      canvas.style.height = `${vh}px`;
+      canvas.width = Math.round(vw * dpr());
+      canvas.height = Math.round(vh * dpr());
+      ctx.setTransform(dpr(), 0, 0, dpr(), 0, 0);
+
+      width = vw;
+      height = vh;
+
+      if (stars.length > 0) {
+        stars.forEach((star) => {
+          star.x = Math.min(Math.max(star.x * scaleX, 0), width);
+          star.y = Math.min(Math.max(star.y * scaleY, 0), height);
+        });
+      }
+    };
 
     const stars = [];
     const starCount = 150;
+
+    resizeCanvas();
     
     for (let i = 0; i < starCount; i++) {
       stars.push({
@@ -65,12 +91,13 @@ const ConstellationBackground = () => {
 
     animate();
 
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
+    const handleResize = () => resizeCanvas();
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   return (
@@ -80,6 +107,8 @@ const ConstellationBackground = () => {
         position: 'fixed',
         top: 0,
         left: 0,
+        width: '100%',
+        height: '100%',
         zIndex: -1,
         backgroundColor: '#121212'
       }}
